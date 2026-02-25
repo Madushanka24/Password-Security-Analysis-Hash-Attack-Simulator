@@ -37,8 +37,8 @@ input[type="text"], input[type="file"] {
     border: none;
     font-size: 16px;
     outline: none;
-    background: rgba(255,255,255,0.2);
-    color: #fff;
+    background: rgb(253, 250, 250);
+    color: #383b3d;
     backdrop-filter: blur(10px);
 }
 
@@ -90,7 +90,7 @@ button:hover {
     font-family: monospace;
     margin-top: 10px;
     height: 25px;
-    color: #00ffea;
+    color: #ff0000;
 }
 
 /* Responsive */

@@ -40,17 +40,32 @@ def calculate_entropy(password):
 
 # Crack Time Estimator
 def estimate_crack_time(entropy):
-    guesses_per_second = 1_000_000_000  # 1B/sec
+    guesses_per_second = 1_000_000_000  # 1 Billion guesses/sec
     total_guesses = 2 ** entropy
     seconds = total_guesses / guesses_per_second
-    if seconds < 60:
+
+    # Convert to human-readable units
+    minute = 60
+    hour = 60 * minute
+    day = 24 * hour
+    week = 7 * day
+    month = 30 * day
+    year = 365 * day
+
+    if seconds < minute:
         return f"{seconds:.2f} seconds"
-    elif seconds < 3600:
+    elif seconds < hour:
         return f"{seconds/60:.2f} minutes"
-    elif seconds < 86400:
-        return f"{seconds/3600:.2f} hours"
+    elif seconds < day:
+        return f"{seconds/hour:.2f} hours"
+    elif seconds < week:
+        return f"{seconds/day:.2f} days"
+    elif seconds < month:
+        return f"{seconds/week:.2f} weeks"
+    elif seconds < year:
+        return f"{seconds/month:.2f} months"
     else:
-        return f"{seconds/86400:.2f} days"
+        return f"{seconds/year:.2f} years"
 
 
 # GPU vs CPU Estimate
