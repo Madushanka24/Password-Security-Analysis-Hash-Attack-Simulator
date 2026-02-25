@@ -30,3 +30,23 @@ def calculate_entropy(password):
     entropy = len(password) * math.log2(charset) if charset else 0
     return round(entropy, 2)
 
+
+
+# Dictionary Attack Simulator
+
+def dictionary_attack(target_hash, wordlist_file="wordlist.txt"):
+    start_time = time.time()
+    attempts = 0
+
+    try:
+        with open(wordlist_file, "r") as file:
+            for word in file:
+                word = word.strip()
+                attempts += 1
+                if hash_password(word) == target_hash:
+                    return word, attempts, time.time() - start_time
+    except FileNotFoundError:
+        return None, 0, 0
+
+    return None, attempts, time.time() - start_time
+
