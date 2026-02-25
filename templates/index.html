@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Password Security Analyzer</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<h1>🔐 Password Security Analysis Tool</h1>
+
+<form method="POST">
+    <input type="text" name="password" placeholder="Enter password" required>
+    <button type="submit">Analyze</button>
+</form>
+
+{% if password %}
+
+<h2>🔑 Hash Results</h2>
+<p><b>SHA256:</b> {{ sha_hash }}</p>
+<p><b>Salted SHA256:</b> {{ salted_hash }}</p>
+<p><b>bcrypt:</b> {{ bcrypt_hash }}</p>
+
+<h2>📊 Entropy</h2>
+<p>{{ entropy }} bits</p>
+
+<div class="entropy-bar">
+    <div class="entropy-fill" style="width: {{ entropy }}%;"></div>
+</div>
+
+<h2>📈 Brute Force Growth Graph</h2>
+<img src="data:image/png;base64,{{ graph }}"/>
+
+{% endif %}
+
+</body>
+</html>
