@@ -67,3 +67,54 @@ def brute_force_attack(target_hash, max_length=3):
 
     return None, attempts, time.time() - start_time
 
+
+# Main Program
+
+def main():
+    print("🔐 Password Security Analysis Tool\n")
+
+    password = input("Enter password to analyze: ")
+
+    # Generate salt
+    salt = generate_salt()
+    hashed = hash_password(password)
+    salted_hash = hash_password(password, salt)
+
+    print("\n--- HASH RESULTS ---")
+    print("SHA256 Hash:", hashed)
+    print("Salt Used:", salt)
+    print("Salted Hash:", salted_hash)
+
+    # Entropy
+    entropy = calculate_entropy(password)
+    print("\n--- ENTROPY ANALYSIS ---")
+    print(f"Password Entropy: {entropy} bits")
+
+    # Dictionary Attack
+    print("\n--- DICTIONARY ATTACK SIMULATION ---")
+    result, attempts, duration = dictionary_attack(hashed)
+
+    if result:
+        print(f"Password cracked: {result}")
+    else:
+        print("Password not found in dictionary.")
+
+    print(f"Attempts: {attempts}")
+    print(f"Time taken: {round(duration, 4)} seconds")
+
+    # Brute Force Attack (Limited)
+    print("\n--- BRUTE FORCE SIMULATION (max length 3) ---")
+    result, attempts, duration = brute_force_attack(hashed)
+
+    if result:
+        print(f"Password cracked: {result}")
+    else:
+        print("Password not cracked (within limit).")
+
+    print(f"Attempts: {attempts}")
+    print(f"Time taken: {round(duration, 4)} seconds")
+
+
+if __name__ == "__main__":
+    main()
+
