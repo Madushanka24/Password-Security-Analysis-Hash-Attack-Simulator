@@ -3,90 +3,17 @@
 <head>
     <title>Password Security Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <style>
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #1e3c72, #252b36);
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .dashboard {
-            backdrop-filter: blur(20px);
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 40px;
-            width: 700px;
-            color: white;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-        }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        input {
-            width: 100%;
-            padding: 12px;
-            border-radius: 10px;
-            border: none;
-            margin-bottom: 15px;
-            font-size: 16px;
-        }
-
-        button {
-            width: 100%;
-            padding: 12px;
-            border-radius: 10px;
-            border: none;
-            background: #00c6ff;
-            color: white;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        .card {
-            margin-top: 20px;
-            padding: 15px;
-            border-radius: 15px;
-            background: rgba(20, 17, 17, 0.12);
-        }
-
-        .entropy-bar {
-            height: 12px;
-            border-radius: 10px;
-            background: #444;
-            margin-top: 5px;
-        }
-
-        .entropy-fill {
-            height: 100%;
-            width: 0%;
-            border-radius: 10px;
-            transition: 0.4s;
-        }
-
-        .attack-animation {
-            font-family: monospace;
-            margin-top: 10px;
-            height: 25px;
-        }
-    </style>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
-
 <body>
 
 <div class="dashboard">
     <h1> Password Security Analyzer</h1>
 
-    <form method="POST">
+    <form method="POST" enctype="multipart/form-data">
         <input type="text" name="password" id="passwordInput"
                placeholder="Enter password" oninput="calculateEntropy()" required>
+        <input type="file" name="wordlist" accept=".txt">
         <button type="submit">Analyze</button>
     </form>
 
@@ -100,33 +27,59 @@
     </div>
 
     {% if result %}
+    <!-- Hash Results -->
     <div class="card">
         <p><strong>SHA256:</strong> {{ result.sha }}</p>
+        <p><strong>Salted SHA256:</strong> {{ result.salted }}</p>
+        <p><strong>bcrypt:</strong> {{ result.bcrypt }}</p>
         <p><strong>Entropy:</strong> {{ result.entropy }} bits</p>
         <p><strong>Estimated Crack Time:</strong> {{ result.crack_time }}</p>
     </div>
 
+    <!-- GPU vs CPU -->
+    <div class="card">
+        <strong>CPU vs GPU Crack Time:</strong>
+        <p>CPU: {{ result.gpu_result.cpu_time | round(2) }} sec</p>
+        <p>GPU: {{ result.gpu_result.gpu_time | round(2) }} sec</p>
+    </div>
+
+    <!-- Dictionary Attack Result -->
+    <div class="card">
+        <strong>Dictionary Attack Simulation:</strong>
+        {% if result.attack_result.found %}
+            <p style="color:lime;">Password cracked: {{ result.attack_result.password }}</p>
+        {% else %}
+            <p style="color:red;">Not found in dictionary.</p>
+        {% endif %}
+        <p>Total Attempts: {{ result.attack_result.attempts }}</p>
+    </div>
+
+    <!-- Attempt Growth Graph -->
+    <div class="card">
+        <strong>Brute Force Attempt Growth Graph</strong>
+        <img src="data:image/png;base64,{{ result.graph }}" style="width:100%;">
+    </div>
+
+    <!-- Simulated Attack Animation -->
     <div class="card">
         <strong>Simulated Attack:</strong>
         <div class="attack-animation" id="attackAnimation"></div>
     </div>
-
-    <canvas id="attemptChart"></canvas>
     {% endif %}
+
 </div>
 
 <script>
 function calculateEntropy() {
     let password = document.getElementById("passwordInput").value;
     let charset = 0;
-
     if(/[a-z]/.test(password)) charset += 26;
     if(/[A-Z]/.test(password)) charset += 26;
     if(/[0-9]/.test(password)) charset += 10;
     if(/[^a-zA-Z0-9]/.test(password)) charset += 32;
 
     let entropy = password.length * Math.log2(charset || 1);
-    let percent = Math.min(entropy * 2, 100);
+    let percent = Math.min(entropy*2, 100);
 
     let fill = document.getElementById("entropyFill");
     fill.style.width = percent + "%";
@@ -135,41 +88,24 @@ function calculateEntropy() {
     else if(entropy < 60) fill.style.background = "orange";
     else fill.style.background = "lime";
 
-    document.getElementById("entropyText").innerText =
-        entropy.toFixed(2) + " bits";
+    document.getElementById("entropyText").innerText = entropy.toFixed(2) + " bits";
 }
-</script>
 
+// Simulated Attack Animation
 {% if result %}
-<script>
-// Crack Time Growth Graph
-const ctx = document.getElementById('attemptChart');
-new Chart(ctx, {
-    type: 'line',
-    data: {
-        labels: {{ result.labels | safe }},
-        datasets: [{
-            label: 'Attempts Growth',
-            data: {{ result.data | safe }},
-            tension: 0.3
-        }]
-    }
-});
-
-// Attack Simulation Animation
 let animation = document.getElementById("attackAnimation");
-let words = ["123456", "password", "admin", "qwerty", "letmein"];
+let words = ["123456","password","admin","qwerty","letmein"];
 let i = 0;
 let interval = setInterval(() => {
     animation.innerText = "Trying: " + words[i];
     i++;
-    if(i >= words.length) {
+    if(i >= words.length){
         animation.innerText = "Password cracked!";
         clearInterval(interval);
     }
 }, 400);
-</script>
 {% endif %}
+</script>
 
 </body>
 </html>

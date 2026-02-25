@@ -1,3 +1,5 @@
-flask
-bcrypt
-matplotlib
+<form method="POST" enctype="multipart/form-data">
+    <input type="text" name="password" placeholder="Enter password" required>
+    <input type="file" name="wordlist">
+    <button type="submit">Analyze</button>
+</form>
