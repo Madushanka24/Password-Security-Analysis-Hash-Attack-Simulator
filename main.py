@@ -37,6 +37,32 @@ def estimate_crack_time(entropy):
         return f"{seconds/3600:.2f} hours"
     else:
         return f"{seconds/86400:.2f} days"
+    
+
+
+#dictionary attack simulation   
+def dictionary_attack_simulation(password, wordlist):
+    target_hash = hashlib.sha256(password.encode()).hexdigest()
+
+    attempts = 0
+
+    for word in wordlist:
+        attempts += 1
+        word = word.strip()
+        word_hash = hashlib.sha256(word.encode()).hexdigest()
+
+        if word_hash == target_hash:
+            return {
+                "found": True,
+                "password": word,
+                "attempts": attempts
+            }
+
+    return {
+        "found": False,
+        "password": None,
+        "attempts": attempts
+    }
 
 
 @app.route("/", methods=["GET", "POST"])
