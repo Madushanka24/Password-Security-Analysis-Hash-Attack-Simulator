@@ -1,20 +1,28 @@
+from flask import Flask, render_template, request
 import hashlib
-import time
+import bcrypt
 import math
-import itertools
 import string
-import random
+import matplotlib.pyplot as plt
+import os
+import base64
+from io import BytesIO
+
+app = Flask(__name__)
+
+
 
 # Hashing Functions
 
-def hash_password(password, salt=""):
+def sha256_hash(password, salt=""):
     return hashlib.sha256((salt + password).encode()).hexdigest()
 
-def generate_salt(length=8):
-    return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
+def bcrypt_hash(password):
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
 
 
-# Entropy Calculator
+
+# Entropy Calculation
 
 def calculate_entropy(password):
     charset = 0
@@ -27,94 +35,66 @@ def calculate_entropy(password):
     if any(c in string.punctuation for c in password):
         charset += 32
 
-    entropy = len(password) * math.log2(charset) if charset else 0
+    if charset == 0:
+        return 0
+
+    entropy = len(password) * math.log2(charset)
     return round(entropy, 2)
 
 
 
-# Dictionary Attack Simulator
-
-def dictionary_attack(target_hash, wordlist_file="wordlist.txt"):
-    start_time = time.time()
-    attempts = 0
-
-    try:
-        with open(wordlist_file, "r") as file:
-            for word in file:
-                word = word.strip()
-                attempts += 1
-                if hash_password(word) == target_hash:
-                    return word, attempts, time.time() - start_time
-    except FileNotFoundError:
-        return None, 0, 0
-
-    return None, attempts, time.time() - start_time
+# Attempt Growth Graph
 
 
-# Brute Force Simulator (Limited)
+def generate_attempt_graph(password):
+    charset = 94  # full ASCII set assumption
+    lengths = list(range(1, len(password) + 2))
+    attempts = [charset ** l for l in lengths]
 
-def brute_force_attack(target_hash, max_length=3):
-    chars = string.ascii_lowercase
-    start_time = time.time()
-    attempts = 0
+    plt.figure()
+    plt.plot(lengths, attempts)
+    plt.xlabel("Password Length")
+    plt.ylabel("Number of Combinations")
+    plt.title("Brute Force Growth (Exponential)")
+    plt.yscale("log")
 
-    for length in range(1, max_length + 1):
-        for attempt in itertools.product(chars, repeat=length):
-            attempts += 1
-            guess = ''.join(attempt)
-            if hash_password(guess) == target_hash:
-                return guess, attempts, time.time() - start_time
+    img = BytesIO()
+    plt.savefig(img, format="png")
+    img.seek(0)
+    graph_url = base64.b64encode(img.getvalue()).decode()
+    plt.close()
 
-    return None, attempts, time.time() - start_time
+    return graph_url
 
 
-# Main Program
 
-def main():
-    print("🔐 Password Security Analysis Tool\n")
+# Routes
 
-    password = input("Enter password to analyze: ")
+@app.route("/", methods=["GET", "POST"])
+def home():
+    if request.method == "POST":
+        password = request.form["password"]
 
-    # Generate salt
-    salt = generate_salt()
-    hashed = hash_password(password)
-    salted_hash = hash_password(password, salt)
+        salt = os.urandom(8).hex()
 
-    print("\n--- HASH RESULTS ---")
-    print("SHA256 Hash:", hashed)
-    print("Salt Used:", salt)
-    print("Salted Hash:", salted_hash)
+        sha_hash = sha256_hash(password)
+        salted_hash = sha256_hash(password, salt)
+        bcrypt_hashed = bcrypt_hash(password)
 
-    # Entropy
-    entropy = calculate_entropy(password)
-    print("\n--- ENTROPY ANALYSIS ---")
-    print(f"Password Entropy: {entropy} bits")
+        entropy = calculate_entropy(password)
+        graph = generate_attempt_graph(password)
 
-    # Dictionary Attack
-    print("\n--- DICTIONARY ATTACK SIMULATION ---")
-    result, attempts, duration = dictionary_attack(hashed)
+        return render_template(
+            "index.html",
+            password=password,
+            sha_hash=sha_hash,
+            salted_hash=salted_hash,
+            bcrypt_hash=bcrypt_hashed,
+            entropy=entropy,
+            graph=graph
+        )
 
-    if result:
-        print(f"Password cracked: {result}")
-    else:
-        print("Password not found in dictionary.")
-
-    print(f"Attempts: {attempts}")
-    print(f"Time taken: {round(duration, 4)} seconds")
-
-    # Brute Force Attack (Limited)
-    print("\n--- BRUTE FORCE SIMULATION (max length 3) ---")
-    result, attempts, duration = brute_force_attack(hashed)
-
-    if result:
-        print(f"Password cracked: {result}")
-    else:
-        print("Password not cracked (within limit).")
-
-    print(f"Attempts: {attempts}")
-    print(f"Time taken: {round(duration, 4)} seconds")
-
+    return render_template("index.html")
 
 if __name__ == "__main__":
-    main()
-
+    app.run(debug=True)
