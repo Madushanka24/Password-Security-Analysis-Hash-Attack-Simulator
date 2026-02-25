@@ -5,7 +5,7 @@ import json
 
 app = Flask(__name__)
 
-# 🔐 Entropy calculator
+# Entropy calculator
 def calculate_entropy(password):
     charset = 0
     if any(c.islower() for c in password):
@@ -23,9 +23,9 @@ def calculate_entropy(password):
     return len(password) * math.log2(charset)
 
 
-# ⏳ Crack time estimator
+# Crack time estimator
 def estimate_crack_time(entropy):
-    guesses_per_second = 1_000_000_000  # 1B guesses/sec
+    guesses_per_second = 1_000_000_000 
     total_guesses = 2 ** entropy
     seconds = total_guesses / guesses_per_second
 
@@ -52,7 +52,7 @@ def home():
         # Entropy
         entropy = calculate_entropy(password)
 
-        # 🔥 ADD IT HERE
+        # ADD IT HERE
         crack_time = estimate_crack_time(entropy)
 
         # Graph data (example)
@@ -62,7 +62,7 @@ def home():
         result = {
             "sha": sha,
             "entropy": round(entropy, 2),
-            "crack_time": crack_time,  # 🔥 send to frontend
+            "crack_time": crack_time, 
             "labels": json.dumps(labels),
             "data": json.dumps(data)
         }
