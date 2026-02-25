@@ -50,3 +50,20 @@ def dictionary_attack(target_hash, wordlist_file="wordlist.txt"):
 
     return None, attempts, time.time() - start_time
 
+
+# Brute Force Simulator (Limited)
+
+def brute_force_attack(target_hash, max_length=3):
+    chars = string.ascii_lowercase
+    start_time = time.time()
+    attempts = 0
+
+    for length in range(1, max_length + 1):
+        for attempt in itertools.product(chars, repeat=length):
+            attempts += 1
+            guess = ''.join(attempt)
+            if hash_password(guess) == target_hash:
+                return guess, attempts, time.time() - start_time
+
+    return None, attempts, time.time() - start_time
+
