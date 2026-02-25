@@ -68,6 +68,24 @@ def generate_attempt_graph(password):
 
 
 
+# Crack-Time Estimator
+
+def estimate_crack_time(entropy):
+    guesses_per_second = 1_000_000_000  # 1B guesses/sec
+    total_guesses = 2 ** entropy
+    seconds = total_guesses / guesses_per_second
+
+    if seconds < 60:
+        return f"{seconds:.2f} seconds"
+    elif seconds < 3600:
+        return f"{seconds/60:.2f} minutes"
+    elif seconds < 86400:
+        return f"{seconds/3600:.2f} hours"
+    else:
+        return f"{seconds/86400:.2f} days"
+
+
+
 # Routes
 
 @app.route("/", methods=["GET", "POST"])
